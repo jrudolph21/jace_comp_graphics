@@ -4,16 +4,14 @@
 
 frameBuffer::frameBuffer() : width(100), height(100) {
     fb.resize(width * height);
-    fb.clear();
 }
 
 frameBuffer::frameBuffer(int w, int h) : width(w), height(h) {
     fb.resize(width * height);
-    fb.clear();
 }
 
 void frameBuffer::clear() {
-    for (int i = 0; i < width * height; ++i) {
+    for (int i = 0; i < width * height; i++) {
         fb[i] = vec3(0.0, 0.0, 0.0);
     }
 }

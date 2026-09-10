@@ -3,7 +3,14 @@
 
 int main() {
 
-    frameBuffer fb;
+    frameBuffer fb(1000, 1000);
 
-    fb.exportPNG("black test");
+    vec3 purple(1, 0.78, 0.18);
+    vec3 gold(0.31, 0.15, 0.51);
+
+    fb.clear();
+
+    fb.clear(purple, gold);
+
+    fb.exportPNG("skol.png");
 }
