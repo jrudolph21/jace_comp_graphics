@@ -32,9 +32,10 @@ void frameBuffer::clear(vec3 rgb1, vec3 rgb2) {
 }
 
 void frameBuffer::set(int x, int y, vec3 rgb) {
-    if ((x>0 && x<width+1) && (y>0 && y<height+1)) {
-        fb[y*width + x] = rgb;
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+        return; 
     }
+    fb[y * width + x] = rgb;
 }
 
 void frameBuffer::exportPNG(std::string filename) {
