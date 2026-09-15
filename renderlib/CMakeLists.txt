@@ -4,6 +4,7 @@ add_library (renderlib
   vec3.h
   frameBuffer.h
   frameBuffer.cpp
+  ray.h 
 )
 target_link_libraries(renderlib PRIVATE PNG::PNG)
 target_link_libraries(renderlib PRIVATE ZLIB::ZLIB)
