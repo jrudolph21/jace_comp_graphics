@@ -44,10 +44,19 @@ void frameBuffer::exportPNG(std::string filename) {
 
     for (size_t y = 0; y < imData.get_height(); ++y) {
         for (size_t x = 0; x < imData.get_width(); ++x) {
+            
             imData[y][x] = png::rgb_pixel( static_cast<png::byte>(std::clamp(fb[y*width + x].x() * 255.0, 0.0, 255.0)),
                                          static_cast<png::byte>(std::clamp(fb[y*width + x].y() * 255.0, 0.0, 255.0)),
                                          static_cast<png::byte>(std::clamp(fb[y*width + x].z() * 255.0, 0.0, 255.0)) );
 	    }
     }
     imData.write( filename );
+}
+
+int frameBuffer::getWidth() {
+    return width;
+}
+
+int frameBuffer::getHeight() {
+    return height;
 }

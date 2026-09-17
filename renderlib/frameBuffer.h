@@ -23,6 +23,10 @@ class frameBuffer {
 
         void exportPNG(std::string filename);
 
+        int getWidth();
+
+        int getHeight();
+
     private:
         std::vector<vec3> fb;
         int width;
