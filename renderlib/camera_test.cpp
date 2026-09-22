@@ -3,9 +3,12 @@
 
 int main() {
 
-    frameBuffer fb(500,500);
+    frameBuffer fb(200,200);
 
-    PerspectiveCamera p(fb.getWidth(), fb.getHeight(), 1.0, 10);
+    vec3 position(0, 0, 0);
+    vec3 viewDirection(0, 0, -1);
+
+    PerspectiveCamera p(viewDirection, position, fb.getHeight(), fb.getWidth(), 0.0625, 0.5);
 
 
     for (int x=0; x<fb.getWidth(); ++x) {
@@ -26,6 +29,6 @@ int main() {
 
     }
 
-    fb.exportPNG( "defaultCamRayColors.png" );
+    fb.exportPNG( "defaultCamRayColorsTEST.png" );
 
 }

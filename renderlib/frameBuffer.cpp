@@ -40,17 +40,21 @@ void frameBuffer::set(int x, int y, vec3 rgb) {
 
 void frameBuffer::exportPNG(std::string filename) {
 
-    png::image< png::rgb_pixel > imData( width, height);
+    png::image< png::rgb_pixel > imData(width, height);
 
     for (size_t y = 0; y < imData.get_height(); ++y) {
         for (size_t x = 0; x < imData.get_width(); ++x) {
             
-            imData[y][x] = png::rgb_pixel( static_cast<png::byte>(std::clamp(fb[y*width + x].x() * 255.0, 0.0, 255.0)),
-                                         static_cast<png::byte>(std::clamp(fb[y*width + x].y() * 255.0, 0.0, 255.0)),
-                                         static_cast<png::byte>(std::clamp(fb[y*width + x].z() * 255.0, 0.0, 255.0)) );
-	    }
+            const vec3& color = fb[x * height + y];
+
+            imData[y][x] = png::rgb_pixel(
+                static_cast<png::byte>(std::clamp(color.x() * 255.0, 0.0, 255.0)),
+                static_cast<png::byte>(std::clamp(color.y() * 255.0, 0.0, 255.0)),
+                static_cast<png::byte>(std::clamp(color.z() * 255.0, 0.0, 255.0))
+            );
+        }
     }
-    imData.write( filename );
+    imData.write(filename);
 }
 
 int frameBuffer::getWidth() {

@@ -27,13 +27,19 @@ class PerspectiveCamera : Camera {
 
         PerspectiveCamera(int imageWidth, int imageHeight, double focalLength, double camWidth);
 
+        PerspectiveCamera(vec3 viewDirection, vec3 postition, int imageWidth, int imageHeight, double focalLength, double camWidth);
+
         ray generateRay(double x, double y) override;
 
     private:
 
+        void updateCameraFrame();
+        
         int imageWidth;
         int imageHeight;
         double focalLength;
         double camWidth;
+        vec3 viewDirection;
+        vec3 position;
 
 };

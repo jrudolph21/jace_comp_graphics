@@ -23,6 +23,7 @@ set(UTESTS
   utest_Failure
   utest_vec3
   utest_ray
+  utest_cam
   )
 
 # 
@@ -34,6 +35,7 @@ foreach(uexec ${UTESTS})
   target_link_libraries(${uexec}
 	PRIVATE
 	Catch2::Catch2WithMain
+  renderlib
 	cs4212-util
   )
 
