@@ -7,13 +7,16 @@ add_library (renderlib
   ray.h 
   camera.h
   camera.cpp
+  shape.h
+  shape.cpp
 )
 target_link_libraries(renderlib PRIVATE PNG::PNG)
 target_link_libraries(renderlib PRIVATE ZLIB::ZLIB)
 
 add_executable( frameBuffer
   #frameBuffer_test.cpp
-  camera_test.cpp
+  #camera_test.cpp
+  sphere_test.cpp
 )
 target_link_libraries(frameBuffer PRIVATE renderlib)
 target_link_libraries(frameBuffer PRIVATE cs4212-util)

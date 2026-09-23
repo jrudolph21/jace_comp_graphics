@@ -45,7 +45,7 @@ void frameBuffer::exportPNG(std::string filename) {
     for (size_t y = 0; y < imData.get_height(); ++y) {
         for (size_t x = 0; x < imData.get_width(); ++x) {
             
-            const vec3& color = fb[x * height + y];
+            const vec3& color = fb[(height - 1 - y) * width + x];
 
             imData[y][x] = png::rgb_pixel(
                 static_cast<png::byte>(std::clamp(color.x() * 255.0, 0.0, 255.0)),

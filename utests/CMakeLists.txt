@@ -24,6 +24,7 @@ set(UTESTS
   utest_vec3
   utest_ray
   utest_cam
+  utest_sphere
   )
 
 # 

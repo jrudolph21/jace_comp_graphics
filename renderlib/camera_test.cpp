@@ -8,7 +8,7 @@ int main() {
     vec3 position(0, 0, 0);
     vec3 viewDirection(0, 0, -1);
 
-    PerspectiveCamera p(viewDirection, position, fb.getHeight(), fb.getWidth(), 0.0625, 0.5);
+    PerspectiveCamera p(viewDirection, position, fb.getHeight(), fb.getWidth(), 1.0, 0.5);
 
 
     for (int x=0; x<fb.getWidth(); ++x) {

@@ -41,14 +41,11 @@ PerspectiveCamera::PerspectiveCamera(vec3 viewDirection, vec3 position, int imag
 void PerspectiveCamera::updateCameraFrame() {
     origin = position;
 
-    // W faces opposite of viewDirection
     vec3 w_dir = viewDirection * -1.0;
     W = w_dir / w_dir.length();
 
-    // Default world up vector
     vec3 up(0, 1, 0);
     
-    // Fallback if viewDirection is parallel to world up vector
     if (std::abs(W.x()) < 1e-6 && std::abs(W.z()) < 1e-6) {
         up = vec3(0, 0, 1);
     }
