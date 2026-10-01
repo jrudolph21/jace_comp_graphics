@@ -9,14 +9,20 @@ add_library (renderlib
   camera.cpp
   shape.h
   shape.cpp
-)
+  HitStruct.h
+  PointLight.h
+  shader.h
+  shader.cpp
+  )
+
 target_link_libraries(renderlib PRIVATE PNG::PNG)
 target_link_libraries(renderlib PRIVATE ZLIB::ZLIB)
 
 add_executable( frameBuffer
   #frameBuffer_test.cpp
   #camera_test.cpp
-  sphere_test.cpp
+  #sphere_test.cpp
+  main.cpp
 )
 target_link_libraries(frameBuffer PRIVATE renderlib)
 target_link_libraries(frameBuffer PRIVATE cs4212-util)
