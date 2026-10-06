@@ -80,13 +80,9 @@ int main(int argc, char* argv[]) {
     PerspectiveCamera p(viewDirection, position,
                         fb.getWidth(), fb.getHeight(), focalLength, camWidth);
 
-    Sphere redSphere(vec3(0.5, 0, -6), 0.25);
-    Sphere orangeSphere(vec3(-0.5, 0, -6), 0.25);
-    Sphere yellowSphere(vec3(-0.35, 0, -6), 0.14);
-    Sphere greenSphere(vec3( 0.00, 0, -6), 0.14);
-    Sphere blueSphere(vec3( 0.35, 0, -6), 0.14);
-    Sphere indigoSphere(vec3( 0.70, 0, -6), 0.14);
-    Sphere violetSphere(vec3( 1.05, 0, -6), 0.14);
+    Sphere redSphere(vec3(0, 0.5, -6), 0.5);
+    Sphere orangeSphere(vec3(-0.3, 1.5, -6), 0.5);
+    Sphere whiteSphere(vec3(0,-100.5,-1), 100);
     
 
     Lambertian lambertian;
@@ -103,19 +99,23 @@ int main(int argc, char* argv[]) {
     SceneObject objects[] = {
         {&redSphere,    &lambertian, vec3(1.0, 0.0, 0.0)},
         {&orangeSphere, &bpShader, vec3(1.0, 0.5, 0.0)},
-    //     {&yellowSphere, &lambertian, vec3(1.0, 1.0, 0.0)},
-    //     {&greenSphere,  &lambertian, vec3(0.0, 1.0, 0.0)},
-    //     {&blueSphere,   &lambertian, vec3(0.0, 0.0, 1.0)},
-    //     {&indigoSphere, &lambertian, vec3(0.29, 0.0, 0.51)},
-    //     {&violetSphere, &lambertian, vec3(0.56, 0.0, 1.0)}
+        {&whiteSphere, &bpShader, vec3(1.0, 1.0, 1.0)}
+
     };
+
+    std::vector<Shape*> shapes;
+
+    for (const SceneObject& object : objects) {
+        shapes.push_back(object.shape);
+    }
     
     // A white point light above and to the right of the camera.
     PointLight light1;
-    //PointLight light2;
-    light1.position = vec3(3, 4, 0);
-    //light2.position = vec3(0, -16, 0);
-    std::vector<PointLight> vecLights{light1,/*light2*/};
+    PointLight light2;
+    //light1.position = vec3(-0.6, 0.1, 0);
+    light1.position = vec3(0, 10, -6);
+    //light2.position = vec3(-0.6, 1, 0);
+    std::vector<PointLight> vecLights{light1/*,light2*/};
 
     for (int x = 0; x < fb.getWidth(); ++x) {
         for (int y = 0; y < fb.getHeight(); ++y) {
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 
             // Shade only the closest surface, after testing all objects.
             if (closestObject != nullptr) {
-                vec3 shading = closestObject->shader->rayColor(closestHit, vecLights);
+                vec3 shading = closestObject->shader->rayColor(closestHit, vecLights, shapes);
                 const vec3& base = closestObject->color;
                 // Tint the Lambertian sphere red. A white tint preserves
                 // all RGB components returned by the Normal shader.

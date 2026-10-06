@@ -1,4 +1,5 @@
 #pragma once
+#include "shape.h"
 #include "HitStruct.h"
 #include "PointLight.h"
 #include <vector>
@@ -10,7 +11,7 @@ class Shader {
 
         virtual ~Shader() = default;
 
-        virtual vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights) = 0;
+        virtual vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs) = 0;
 };
 
 
@@ -20,7 +21,7 @@ class Lambertian : public Shader {
 
         Lambertian();
 
-        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights) override;
+        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs) override;
 
     private:
 
@@ -34,8 +35,7 @@ class BlinnPhong : public Shader {
 
         BlinnPhong();
 
-        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights) override;
-
+        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs) override;
         void setP();
         
     private:
@@ -55,7 +55,7 @@ class Normal : public Shader {
 
         Normal() {}
 
-        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights) override;
+        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs) override;
 
 
 };
