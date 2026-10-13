@@ -17,7 +17,7 @@ class Camera {
     vec3 origin;
 };
 
-class PerspectiveCamera : Camera {
+class PerspectiveCamera : public Camera {
 
     public:
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "ray.h"
 #include "HitStruct.h"
+#include <cmath>
 
 class Shape {
 
@@ -42,6 +43,7 @@ class Triangle : public Shape {
         Triangle(vec3 a, vec3 b, vec3 c);
 
         bool intersect(const ray &r, const float tmin, float &tmax, HitStruct &hit) override;
+        bool mollerIntersect(const ray &r, const float tmin, float &tmax, HitStruct &hit);
 
         vec3 getPointA();
         vec3 getPointB();

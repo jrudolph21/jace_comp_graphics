@@ -13,6 +13,10 @@ add_library (renderlib
   PointLight.h
   shader.h
   shader.cpp
+  scene.h
+  scene.cpp
+  rayTracer.h
+  rayTracer.cpp
   )
 
 target_link_libraries(renderlib PRIVATE PNG::PNG)
@@ -23,6 +27,7 @@ add_executable( frameBuffer
   #camera_test.cpp
   #sphere_test.cpp
   main.cpp
+  # triangle_benchmark.cpp
 )
 target_link_libraries(frameBuffer PRIVATE renderlib)
 target_link_libraries(frameBuffer PRIVATE cs4212-util)

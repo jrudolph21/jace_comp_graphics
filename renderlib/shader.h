@@ -11,7 +11,7 @@ class Shader {
 
         virtual ~Shader() = default;
 
-        virtual vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs) = 0;
+        virtual vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) = 0;
 };
 
 
@@ -21,7 +21,7 @@ class Lambertian : public Shader {
 
         Lambertian();
 
-        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs) override;
+        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) override;
 
     private:
 
@@ -35,8 +35,9 @@ class BlinnPhong : public Shader {
 
         BlinnPhong();
 
-        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs) override;
-        void setP();
+        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) override;
+        void setP(double p_value);
+        void setKd(const vec3& value);
         
     private:
 
@@ -49,13 +50,31 @@ class BlinnPhong : public Shader {
 
 };
 
+class Mirror : public Shader {
+
+    public:
+
+        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) override;
+
+    private:
+
+        vec3 view;
+
+        vec3 h;
+
+        vec3 kd, ks;
+        double p;
+
+};
+
+
 class Normal : public Shader {
 
     public: 
 
         Normal() {}
 
-        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs) override;
+        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) override;
 
 
 };

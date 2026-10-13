@@ -122,3 +122,62 @@ bool Triangle::intersect(const ray &r, const float tmin, float &tmax, HitStruct 
     return true;
 
 }
+
+bool Triangle::mollerIntersect(const ray &r, const float tmin, float &tmax, HitStruct &hit) {
+
+    constexpr float epsilon = std::numeric_limits<float>::epsilon();
+
+    vec3 rd = r.getDirection();
+    vec3 ro = r.getOrigin();
+
+    vec3 A = getPointA();
+    vec3 B = getPointB();
+    vec3 C = getPointC();
+
+    vec3 AedgeBA = B - A;
+    vec3 AedgeCA = C - A;
+
+    const vec3 normal = cross(AedgeBA, AedgeCA);
+
+    vec3 rdCrossEdgeCA = cross(rd, AedgeCA);
+  
+
+    float det = dot(AedgeBA, rdCrossEdgeCA);
+
+    double invDet = 1.0 / det;
+
+    if (std::abs(det) < epsilon) {
+        return false;
+    }
+
+    vec3 s = ro - A;
+
+    float u = ( dot(s, rdCrossEdgeCA) ) * invDet;
+
+    if( u < -epsilon || u - 1 > epsilon) {
+        return false;
+    }
+
+    vec3 sCrossEdgeBA = cross(s, AedgeBA);
+
+    float v = ( dot(rd, sCrossEdgeBA) ) * invDet;
+
+    if( v < -epsilon || u + v - 1 > epsilon) {
+        return false;
+    }
+
+    float t = ( dot(AedgeCA,sCrossEdgeBA) ) * invDet;
+
+    if (t < tmin || t > tmax) {
+        return false;
+    }
+    else {
+        hit.t = t;
+        hit.intersectionPoint = r.at(t);
+        hit.normal = normal / normal.length();
+        hit.shape = this;
+        tmax = static_cast<float>(t);
+        return true;
+    }
+
+}

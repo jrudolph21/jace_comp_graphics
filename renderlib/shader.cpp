@@ -1,9 +1,15 @@
 #include "shader.h"
+#include "scene.h"
 #include <algorithm>
+#include <limits>
 
 Lambertian::Lambertian() : kd(vec3(1.0, 1.0, 1.0)) {}
 
-vec3 Lambertian::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs) {
+vec3 Lambertian::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) {
+
+    if(depth <= 0) {
+        return vec3(0, 0, 0);
+    }
 
     vec3 normal = hit.normal;
 
@@ -45,10 +51,21 @@ vec3 Lambertian::rayColor(const HitStruct &hit, const std::vector<PointLight>& v
 
 BlinnPhong::BlinnPhong() : view(vec3(0.0, 0.0, 0.0)), h(vec3(0.0, 0.0, 0.0)), kd(vec3(1.0, 1.0, 1.0)), ks(vec3(1.0, 1.0, 1.0)), p(50.0) {}
 
-vec3 BlinnPhong::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs) {
+void BlinnPhong::setP(double p_value) {
+    p = p_value;
+}
 
+void BlinnPhong::setKd(const vec3& value) {
+    kd = value;
+}
 
-    vec3 normal = hit.normal;
+vec3 BlinnPhong::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) {
+
+    if(depth <= 0) {
+        return vec3(0, 0, 0);
+    }
+
+    vec3 normal = unit_vec(hit.normal);
 
     // reverse the incoming view ray to point back at camera, then normalize
     vec3 v = unit_vec(-1*(hit.viewDir));
@@ -99,8 +116,86 @@ vec3 BlinnPhong::rayColor(const HitStruct &hit, const std::vector<PointLight>& v
 
 }
 
-vec3 Normal::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs) {
+vec3 Mirror::rayColor(
+    const HitStruct &hit,
+    const std::vector<PointLight>& vecLights,
+    const std::vector<Shape*>& shapeObjs,
+    int depth
+) {
+    if (depth <= 0 || hit.scene == nullptr) {
+        return vec3(0, 0, 0);
+    }
 
+    vec3 normal = unit_vec(hit.normal);
+
+    // Point back toward the source of the incoming ray.
+    vec3 v = unit_vec(-1.0 * hit.viewDir);
+
+    if (dot(normal, v) < 0.0) {
+        normal = -1.0 * normal;
+    }
+
+    // Reflected direction.
+    vec3 l = unit_vec(
+        2.0 * dot(normal, v) * normal - v
+    );
+
+
+    vec3 shadowOrigin =
+        hit.intersectionPoint + 0.0001 * normal;
+
+    ray shadowRay(shadowOrigin, l);
+
+    float tmax = std::numeric_limits<float>::infinity();
+
+    // Reflections that miss all objects show the background.
+    vec3 color = hit.scene->getBackground();
+
+    HitStruct closestHit;
+    const Scene::SceneObject* closestObject = nullptr;
+
+    for (const Scene::SceneObject& object :
+         hit.scene->getObjects()) {
+
+        HitStruct shadowHit;
+
+        if (object.shape->intersect(
+                shadowRay, 0.0001f, tmax, shadowHit
+            )) {
+
+            shadowHit.viewDir = shadowRay.getDirection();
+            shadowHit.scene = hit.scene;
+
+            closestHit = shadowHit;
+            closestObject = &object;
+        }
+    }
+
+    if (closestObject != nullptr) {
+        vec3 shading = closestObject->shader->rayColor(
+            closestHit,
+            vecLights,
+            shapeObjs,
+            depth - 1
+        );
+
+        const vec3& base = closestObject->color;
+
+        color = vec3(
+            base.x() * shading.x(),
+            base.y() * shading.y(),
+            base.z() * shading.z()
+        );
+    }
+
+    return color;
+}
+
+vec3 Normal::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) {
+
+    if(depth <= 0) {
+        return vec3(0, 0, 0);
+    }
     vec3 normal = unit_vec(hit.normal);
 
     return 0.5 * (normal + vec3(1, 1, 1));
