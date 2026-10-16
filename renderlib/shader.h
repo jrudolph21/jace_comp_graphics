@@ -3,6 +3,8 @@
 #include "HitStruct.h"
 #include "PointLight.h"
 #include <vector>
+#include <limits>
+#include <random>
 
 
 class Shader {
@@ -11,7 +13,7 @@ class Shader {
 
         virtual ~Shader() = default;
 
-        virtual vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) = 0;
+        virtual vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const = 0;
 };
 
 
@@ -21,7 +23,7 @@ class Lambertian : public Shader {
 
         Lambertian();
 
-        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) override;
+        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const override;
 
     private:
 
@@ -35,7 +37,7 @@ class BlinnPhong : public Shader {
 
         BlinnPhong();
 
-        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) override;
+        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const override;
         void setP(double p_value);
         void setKd(const vec3& value);
         
@@ -54,7 +56,7 @@ class Mirror : public Shader {
 
     public:
 
-        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) override;
+        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const override;
 
     private:
 
@@ -67,6 +69,24 @@ class Mirror : public Shader {
 
 };
 
+class Diffuse : public Shader {
+
+    public:
+
+        Diffuse();
+
+        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const override;
+
+    private:
+
+        vec3 random_in_unit_sphere() const;
+
+        vec3 getRandomVec3(double min, double max) const;
+
+        vec3 kd; // reflectance of surface
+
+};
+
 
 class Normal : public Shader {
 
@@ -74,7 +94,7 @@ class Normal : public Shader {
 
         Normal() {}
 
-        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) override;
+        vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const override;
 
 
 };

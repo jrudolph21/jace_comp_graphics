@@ -20,7 +20,7 @@ void rayTracer::render(
     const auto& lights = scene.getLights();
     const auto& shapes = scene.getShapes();
 
-    const int rpp_NSquare = 4;
+    const int rpp_NSquare = 10;
     
 
     for (int x = 0; x < fb.getWidth(); ++x) {

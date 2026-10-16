@@ -26,9 +26,18 @@ add_executable( frameBuffer
   #frameBuffer_test.cpp
   #camera_test.cpp
   #sphere_test.cpp
-  main.cpp
+  # main.cpp
   # triangle_benchmark.cpp
+  progress_lab.cpp
 )
+
+# add_executable( progress_lab
+#   progress_lab.cpp
+# )
 target_link_libraries(frameBuffer PRIVATE renderlib)
 target_link_libraries(frameBuffer PRIVATE cs4212-util)
 target_link_libraries(frameBuffer PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARIES})
+
+# target_link_libraries(progress_lab PRIVATE renderlib)
+# target_link_libraries(progress_lab PRIVATE cs4212-util)
+# target_link_libraries(progress_lab PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARIES})

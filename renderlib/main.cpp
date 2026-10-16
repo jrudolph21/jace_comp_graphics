@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     double camWidth = 0.5;
     std::string outputFile = "render.png";
 
-    // Assume each option is valid and is followed by the required values.
+   
     for (int i = 1; i < argc; ++i) {
         std::string option = argv[i];
 
@@ -68,18 +68,18 @@ int main(int argc, char* argv[]) {
         camWidth
     );
 
-    // Shapes.
+    
     Sphere redSphere(vec3(-1.2, 1.0, -3.0), 1.0);
     Sphere mirrorSphere(vec3(1.2, 1.10, -4.0), 1.10);
 
-    // Large floor at Y = 0.
+    
     Triangle ground(
         vec3(-100, 0, 100),
         vec3(100, 0, 100),
         vec3(0, 0, -100)
     );
 
-    // Shaders.
+    
     Lambertian lambertian;
     BlinnPhong blinnPhong;
     blinnPhong.setP(100.0);
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     PointLight light2;
     light2.position = vec3(4, 5, -1);
 
-    // Scene.
+    
     Scene scene;
 
     scene.addCam(camera);
@@ -112,11 +112,11 @@ int main(int argc, char* argv[]) {
     scene.addObject(
         mirrorSphere, mirror, vec3(1.0, 1.0, 1.0)
     );
-    // Render the scene using its first camera.
+    // Render the scene 
     rayTracer renderer;
     renderer.render(scene, fb, 0, depth);
 
-    // Save the completed image.
+    // Save the image
     fb.exportPNG(outputFile);
 
     std::cout << "Rendered scene to " << outputFile << '\n';
