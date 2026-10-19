@@ -28,7 +28,8 @@ add_executable( frameBuffer
   #sphere_test.cpp
   # main.cpp
   # triangle_benchmark.cpp
-  progress_lab.cpp
+  #progress_lab.cpp
+  bronze_level.cpp
 )
 
 # add_executable( progress_lab
