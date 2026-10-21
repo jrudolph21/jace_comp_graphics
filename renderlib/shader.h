@@ -22,6 +22,7 @@ class Lambertian : public Shader {
     public:
 
         Lambertian();
+        Lambertian(const vec3 &color);
 
         vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const override;
 
@@ -36,6 +37,7 @@ class BlinnPhong : public Shader {
     public:
 
         BlinnPhong();
+        BlinnPhong(const vec3 &color, const vec3 &specular);
 
         vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const override;
         void setP(double p_value);
@@ -74,6 +76,7 @@ class Diffuse : public Shader {
     public:
 
         Diffuse();
+        Diffuse(const vec3 &color);
 
         vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const override;
 

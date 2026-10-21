@@ -5,6 +5,8 @@
 
 Lambertian::Lambertian() : kd(vec3(1.0, 1.0, 1.0)) {}
 
+Lambertian::Lambertian(const vec3 &color) : kd(color) {}
+
 vec3 Lambertian::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const {
 
     if(depth <= 0) {
@@ -50,6 +52,9 @@ vec3 Lambertian::rayColor(const HitStruct &hit, const std::vector<PointLight>& v
 }
 
 BlinnPhong::BlinnPhong() : view(vec3(0.0, 0.0, 0.0)), h(vec3(0.0, 0.0, 0.0)), kd(vec3(1.0, 1.0, 1.0)), ks(vec3(5.0, 5.0, 5.0)), p(50.0) {}
+
+BlinnPhong::BlinnPhong(const vec3 &color, const vec3 &specular) : view(vec3(0.0, 0.0, 0.0)), h(vec3(0.0, 0.0, 0.0)), kd(color), ks(specular), p(50.0) {}
+
 
 void BlinnPhong::setP(double p_value) {
     p = p_value;
@@ -144,6 +149,14 @@ vec3 Mirror::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLi
         return vec3(0, 0, 0);
     }
 
+    // if (hit.scene == nullptr) {
+    //     return vec3(1, 1, 0);  // Yellow: missing scene pointer
+    // }
+
+    // if (depth <= 0) {
+    //     return vec3(1, 0, 1);  // Magenta: mirror recursion limit
+    // }
+
     vec3 normal = unit_vec(hit.normal);
 
     // Point back toward the source of the incoming ray.
@@ -159,10 +172,10 @@ vec3 Mirror::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLi
     );
 
 
-    vec3 shadowOrigin =
+    vec3 reflectionOrigin =
         hit.intersectionPoint + 0.0001 * normal;
 
-    ray shadowRay(shadowOrigin, l);
+    ray reflectionRay(reflectionOrigin, l);
 
     float tmax = std::numeric_limits<float>::infinity();
 
@@ -178,10 +191,10 @@ vec3 Mirror::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLi
         HitStruct shadowHit;
 
         if (object.shape->intersect(
-                shadowRay, 0.0001f, tmax, shadowHit
+                reflectionRay, 0.0001f, tmax, shadowHit
             )) {
 
-            shadowHit.viewDir = shadowRay.getDirection();
+            shadowHit.viewDir = reflectionRay.getDirection();
             shadowHit.scene = hit.scene;
 
             closestHit = shadowHit;
@@ -190,19 +203,12 @@ vec3 Mirror::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLi
     }
 
     if (closestObject != nullptr) {
-        vec3 shading = closestObject->shader->rayColor(
+        // The hit shader supplies its own color.
+        color = closestObject->shader->rayColor(
             closestHit,
             vecLights,
             shapeObjs,
             depth - 1
-        );
-
-        const vec3& base = closestObject->color;
-
-        color = vec3(
-            base.x() * shading.x(),
-            base.y() * shading.y(),
-            base.z() * shading.z()
         );
     }
 
@@ -210,6 +216,8 @@ vec3 Mirror::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLi
 }
 
 Diffuse::Diffuse() : kd(vec3(1.0, 1.0, 1.0)) {}
+
+Diffuse::Diffuse(const vec3 &color) : kd(color) {}
 
 vec3 Diffuse::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const {
 

@@ -15,14 +15,13 @@ class Scene {
         void addCam(Camera& camera);
         void addLight(const PointLight& light);
 
-        void addObject(Shape& shape, Shader& shader, const vec3& color);
+        void addObject(Shape& shape, Shader& shader);
 
         void setBackground(const vec3& color);
 
         struct SceneObject {
             Shape* shape; 
             Shader* shader;
-            vec3 color;
         };
 
         const std::vector<PointLight>& getLights() const;
@@ -38,7 +37,6 @@ class Scene {
 
         std::vector<PointLight> lights;
         std::vector<Camera*> cameras;
-        std::vector<Shader*> shaders;
         std::vector<SceneObject> objects;
 
         std::vector<Shape*> shapes;

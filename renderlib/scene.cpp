@@ -9,10 +9,9 @@ void Scene::addLight(const PointLight& light) {
     lights.push_back(light);
 }
 
-void Scene::addObject(Shape& shape, Shader& shader, const vec3& color) {
-    objects.push_back({&shape, &shader, color});
+void Scene::addObject(Shape& shape, Shader& shader) {
+    objects.push_back({&shape, &shader});
     shapes.push_back(&shape);
-    shaders.push_back(&shader);
 }
 
 void Scene::setBackground(const vec3& color) {
