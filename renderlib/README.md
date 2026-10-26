@@ -27,3 +27,7 @@ utest executable in utest/Debug/utest_sphere.exe
 
 Everything is now done using main.cpp
 Executable is in renderlib/Debug/.exe
+
+## [Lab] - JSON Loader
+
+executable for json loader is: ./renderlib/Debug/json_loader.exe 
