@@ -17,10 +17,15 @@ add_library (renderlib
   scene.cpp
   rayTracer.h
   rayTracer.cpp
+  ISceneLoader.h
+  SceneLoader.h 
+  SceneParser_JSON.cpp 
+  SceneParser_JSON.h
   )
 
 target_link_libraries(renderlib PRIVATE PNG::PNG)
 target_link_libraries(renderlib PRIVATE ZLIB::ZLIB)
+target_link_libraries(renderlib PUBLIC nlohmann_json::nlohmann_json glm::glm)
 
 add_executable( frameBuffer
   #frameBuffer_test.cpp
@@ -28,17 +33,26 @@ add_executable( frameBuffer
   #sphere_test.cpp
   # main.cpp
   # triangle_benchmark.cpp
-  #progress_lab.cpp
-  bronze_level.cpp
+  # progress_lab.cpp
+  # bronze_level.cpp
 )
 
-# add_executable( progress_lab
-#   progress_lab.cpp
-# )
+add_executable( progress_lab
+  bronze_level.cpp 
+)
+
+add_executable( json_loader
+  json_loader.cpp
+)
+
 target_link_libraries(frameBuffer PRIVATE renderlib)
 target_link_libraries(frameBuffer PRIVATE cs4212-util)
 target_link_libraries(frameBuffer PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARIES})
 
-# target_link_libraries(progress_lab PRIVATE renderlib)
-# target_link_libraries(progress_lab PRIVATE cs4212-util)
-# target_link_libraries(progress_lab PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARIES})
+target_link_libraries(progress_lab PRIVATE renderlib)
+target_link_libraries(progress_lab PRIVATE cs4212-util)
+target_link_libraries(progress_lab PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARIES})
+
+target_link_libraries(json_loader PRIVATE renderlib)
+target_link_libraries(json_loader PRIVATE cs4212-util)
+target_link_libraries(json_loader PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARIES})

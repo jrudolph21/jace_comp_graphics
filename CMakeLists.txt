@@ -79,6 +79,7 @@ endif()
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(glm CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 
 # not using Vulkan at the moment

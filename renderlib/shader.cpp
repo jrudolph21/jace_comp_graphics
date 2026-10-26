@@ -53,7 +53,7 @@ vec3 Lambertian::rayColor(const HitStruct &hit, const std::vector<PointLight>& v
 
 BlinnPhong::BlinnPhong() : view(vec3(0.0, 0.0, 0.0)), h(vec3(0.0, 0.0, 0.0)), kd(vec3(1.0, 1.0, 1.0)), ks(vec3(5.0, 5.0, 5.0)), p(50.0) {}
 
-BlinnPhong::BlinnPhong(const vec3 &color, const vec3 &specular) : view(vec3(0.0, 0.0, 0.0)), h(vec3(0.0, 0.0, 0.0)), kd(color), ks(specular), p(50.0) {}
+BlinnPhong::BlinnPhong(const vec3 &color, const vec3 &specular, double phong) : view(vec3(0.0, 0.0, 0.0)), h(vec3(0.0, 0.0, 0.0)), kd(color), ks(specular), p(phong) {}
 
 
 void BlinnPhong::setP(double p_value) {
@@ -219,89 +219,88 @@ Diffuse::Diffuse() : kd(vec3(1.0, 1.0, 1.0)) {}
 
 Diffuse::Diffuse(const vec3 &color) : kd(color) {}
 
-vec3 Diffuse::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const {
 
-     if(depth <= 0) {
+vec3 Diffuse::rayColor(
+    const HitStruct& hit,
+    const std::vector<PointLight>& vecLights,
+    const std::vector<Shape*>& shapeObjs,
+    int depth
+) const {
+
+    if (depth <= 1) {
         return vec3(0, 0, 0);
     }
 
-    vec3 normal = hit.normal;
+    vec3 normal = unit_vec(hit.normal);
 
-    vec3 color(0.0, 0.0, 0.0);
+    // Generate a cosine-weighted diffuse direction.
+    vec3 bounce = normal + random_in_unit_sphere();
 
-    for(const PointLight& light : vecLights) {
-
-        //Unit vector point from shap intersection to light
-        vec3 l = unit_vec(light.position-hit.intersectionPoint);
-
-        vec3 shadowOrigin = hit.intersectionPoint + 0.0001f * normal;
-
-        vec3 toLight = light.position - shadowOrigin;
-        ray shadowRay(shadowOrigin, unit_vec(toLight));
-
-        float tmax = static_cast<float>(toLight.length()) - 0.0001f;
-
-        double nDotLight = std::max(0.0, dot(normal, l));
-
-        bool inShadow = false;
-
-        for(Shape* shape : shapeObjs) {
-
-            HitStruct shadowStruct;
-
-            if (shape->intersect(shadowRay, 0.0001f, tmax, shadowStruct)) {
-                inShadow = true;
-                break;
-            }
-        }
-        if (!inShadow) {
-            color += kd * nDotLight * light.intesity;
-        }
-        
+    // Prevent a zero-length bounce direction.
+    if (bounce.length() < 1e-8) {
+        bounce = normal;
     }
 
-    if (depth > 1) {
+    // Offset the ray origin outside the surface.
+    vec3 bounceOrigin =
+        hit.intersectionPoint + 0.0001f * normal;
 
-        vec3 bounce = unit_vec(normal + random_in_unit_sphere());
+    ray bounceRay(bounceOrigin, bounce);
 
-        vec3 bounceOrigin = hit.intersectionPoint * normal;
+    // Find the closest surface hit.
+    float closestT =
+        std::numeric_limits<float>::infinity();
 
-        ray bounceRay(bounceOrigin, bounce);
+    HitStruct closestHit;
+    bool hitSomething = false;
 
-        float infinity = std::numeric_limits<float>::infinity();
-        HitStruct closestHit;
-        bool hitSomething = false;
+    for (Shape* shape : shapeObjs) {
+        HitStruct candidateHit;
+        float candidateMax = closestT;
 
-        for (Shape* shape : shapeObjs) {
-            HitStruct candidateHit;
+        if (shape->intersect(
+                bounceRay,
+                0.0001f,
+                candidateMax,
+                candidateHit)) {
 
-            // intersect updates closestT when it finds a closer hit.
-            if (shape->intersect(
-                    bounceRay, 0.0001f, infinity, candidateHit)) {
-
+            if (candidateHit.t < closestT) {
+                closestT = candidateHit.t;
                 closestHit = candidateHit;
                 hitSomething = true;
             }
         }
+    }
 
-        if (hitSomething && closestHit.shader != nullptr) {
-            vec3 bouncedColor = closestHit.shader->rayColor(
+    // If the bounce hits another object, recurse.
+    if (hitSomething) {
+        if (closestHit.shader == nullptr) {
+            return vec3(0, 0, 0);
+        }
+
+        vec3 bouncedColor =
+            closestHit.shader->rayColor(
                 closestHit,
                 vecLights,
                 shapeObjs,
                 depth - 1
             );
 
-            color += kd * bouncedColor;
-        }
-
-        // A missed bounce contributes black here.
-        // You could instead add kd * yourBackgroundColor.
+        return kd * bouncedColor;
     }
 
-    return color;
+    // The bounce missed everything: sample the sky.
+    vec3 unitDirection = unit_vec(bounce);
 
+    double a = 0.5 * (unitDirection.y() + 1.0);
+
+    vec3 skyColor =
+        (1.0 - a) * vec3(1.0, 1.0, 1.0)
+        + a * vec3(0.5, 0.7, 1.0);
+
+    return kd * skyColor;
 }
+
 
 vec3 Diffuse::random_in_unit_sphere() const {
 

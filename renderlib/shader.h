@@ -37,7 +37,7 @@ class BlinnPhong : public Shader {
     public:
 
         BlinnPhong();
-        BlinnPhong(const vec3 &color, const vec3 &specular);
+        BlinnPhong(const vec3 &color, const vec3 &specular, double phong);
 
         vec3 rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLights, const std::vector<Shape*>& shapeObjs, int depth) const override;
         void setP(double p_value);
