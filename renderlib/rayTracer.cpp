@@ -81,6 +81,8 @@ void rayTracer::render(
                     if (closestObject != nullptr) {
                         closestHit.viewDir = r.getDirection();
                         closestHit.scene = &scene;
+                        closestHit.shader = closestObject->shader;
+                        closestHit.root = root;
 
                         sampleColor = closestObject->shader->rayColor(
                             closestHit, lights, shapes, depth

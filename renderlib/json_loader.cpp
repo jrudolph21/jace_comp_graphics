@@ -18,8 +18,10 @@ void printUsage_lab(const char* program) {
               << "  --focal-length F    Focal length (default 0.4)\n"
               << "  --cam-width W       Camera plane width (default 0.5)\n"
               << "  --depth N           Recursive depth (default 3)\n"
-              << "  --input FILE        Reserved for JSON loading\n"
+              << "  --input FILE        JSON scene file (required)\n"
               << "  --output FILE       Output PNG (default render.png)\n"
+              << "  --bvh               Use BVH (default)\n"
+              << "  --no-bvh            Use linear searches\n"
               << "  --help              Show this help\n";
 }
 
@@ -27,6 +29,7 @@ int main(int argc, char* argv[]) {
     int width = 200;
     int height = 200;
     int depth = 3;
+    bool useBVH = true;
 
     vec3 position(0, 1.8, 3.0);
     vec3 viewDirection(0, -0.22, -1);
@@ -50,7 +53,11 @@ int main(int argc, char* argv[]) {
                 }
             };
 
-            if (option == "--width") {
+            if (option == "--no-bvh") {
+                useBVH = false;
+            } else if (option == "--bvh") {
+                useBVH = true;
+            } else if (option == "--width") {
                 requireArguments(1);
                 width = std::stoi(argv[++i]);
             } else if (option == "--height") {
@@ -127,13 +134,14 @@ int main(int argc, char* argv[]) {
         SceneParser_JSON parser(loader);
         parser.parseFileData(inputFile);
 
-        // Build the BVH once.
         std::unique_ptr<bvhNode> root;
 
-        if (!scene.getShapes().empty()) {
+        if (useBVH && !scene.getShapes().empty()) {
             root = std::make_unique<bvhNode>(scene.getShapes(), 0);
         }
 
+        std::cout << "Mode: " << (root ? "BVH" : "Linear")
+                  << "; shapes: " << scene.getShapes().size() << '\n';
         rayTracer renderer;
         auto start = std::chrono::high_resolution_clock::now();
         renderer.render(scene, fb, 0, depth, root.get());

@@ -3,6 +3,81 @@
 #include <algorithm>
 #include <limits>
 
+namespace {
+
+bool isOccluded(
+    const ray& r,
+    float tmin,
+    float tmax,
+    const std::vector<Shape*>& shapes,
+    bvhNode* root)
+{
+    HitStruct shadowHit{};
+
+    if (root != nullptr) {
+        return root->intersect(r, tmin, tmax, shadowHit);
+    }
+
+    // Linear fallback for comparison or rendering without a BVH.
+    for (Shape* shape : shapes) {
+        if (shape->intersect(r, tmin, tmax, shadowHit)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool traceSecondary(
+    const ray& r,
+    float tmin,
+    float tmax,
+    const HitStruct& parentHit,
+    const std::vector<Shape*>& shapes,
+    HitStruct& closestHit)
+{
+    bool foundHit = false;
+
+    if (parentHit.root != nullptr) {
+        foundHit = parentHit.root->intersect(
+            r, tmin, tmax, closestHit);
+    }
+    else {
+        for (Shape* shape : shapes) {
+            HitStruct candidate{};
+
+            if (shape->intersect(r, tmin, tmax, candidate)) {
+                closestHit = candidate;
+                foundHit = true;
+            }
+        }
+    }
+
+    if (!foundHit) {
+        return false;
+    }
+
+    closestHit.viewDir = r.getDirection();
+    closestHit.scene = parentHit.scene;
+    closestHit.root = parentHit.root;
+    closestHit.shader = nullptr;
+
+    // Find the material belonging to the actual intersected shape.
+    if (parentHit.scene != nullptr) {
+        for (const Scene::SceneObject& object :
+             parentHit.scene->getObjects()) {
+            if (object.shape == closestHit.shape) {
+                closestHit.shader = object.shader;
+                break;
+            }
+        }
+    }
+
+    return true;
+}
+
+} // namespace
+
 Lambertian::Lambertian() : kd(vec3(1.0, 1.0, 1.0)) {}
 
 Lambertian::Lambertian(const vec3 &color) : kd(color) {}
@@ -31,17 +106,17 @@ vec3 Lambertian::rayColor(const HitStruct &hit, const std::vector<PointLight>& v
 
         double nDotLight = std::max(0.0, dot(normal, l));
 
-        bool inShadow = false;
+        bool inShadow = isOccluded(shadowRay, 0.0001f, tmax, shapeObjs, hit.root);
 
-        for(Shape* shape : shapeObjs) {
+        // for(Shape* shape : shapeObjs) {
 
-            HitStruct shadowStruct;
+        //     HitStruct shadowStruct;
 
-            if (shape->intersect(shadowRay, 0.0001f, tmax, shadowStruct)) {
-                inShadow = true;
-                break;
-            }
-        }
+        //     if (shape->intersect(shadowRay, 0.0001f, tmax, shadowStruct)) {
+        //         inShadow = true;
+        //         break;
+        //     }
+        // }
         if (!inShadow) {
             color += kd * nDotLight * light.intesity;
         }
@@ -102,18 +177,18 @@ vec3 BlinnPhong::rayColor(const HitStruct &hit, const std::vector<PointLight>& v
 
         ray shadowRay(shadowOrigin, unit_vec(toLight));
 
-        bool inShadow = false;
+        bool inShadow = isOccluded(shadowRay, 0.0001f, tmax, shapeObjs, hit.root);
 
-        for (Shape* shape : shapeObjs) {
-            HitStruct shadowHit;
+        // for (Shape* shape : shapeObjs) {
+        //     HitStruct shadowHit;
 
-            if (shape->intersect(
-                shadowRay, 0.0001f, tmax, shadowHit
-            )) {
-                inShadow = true;
-                break;
-            }
-        }
+        //     if (shape->intersect(
+        //         shadowRay, 0.0001f, tmax, shadowHit
+        //     )) {
+        //         inShadow = true;
+        //         break;
+        //     }
+        // }
 
         if (inShadow) {
             continue;
@@ -182,35 +257,57 @@ vec3 Mirror::rayColor(const HitStruct &hit, const std::vector<PointLight>& vecLi
     // Reflections that miss all objects show the background.
     vec3 color = hit.scene->getBackground();
 
-    HitStruct closestHit;
-    const Scene::SceneObject* closestObject = nullptr;
+    HitStruct closestHit{};
 
-    for (const Scene::SceneObject& object :
-         hit.scene->getObjects()) {
+    if (traceSecondary(
+            reflectionRay,
+            0.0001f,
+            tmax,
+            hit,
+            shapeObjs,
+            closestHit)) {
 
-        HitStruct shadowHit;
-
-        if (object.shape->intersect(
-                reflectionRay, 0.0001f, tmax, shadowHit
-            )) {
-
-            shadowHit.viewDir = reflectionRay.getDirection();
-            shadowHit.scene = hit.scene;
-
-            closestHit = shadowHit;
-            closestObject = &object;
+        if (closestHit.shader != nullptr) {
+            color = closestHit.shader->rayColor(
+                closestHit,
+                vecLights,
+                shapeObjs,
+                depth - 1
+            );
+        }
+        else {
+            color = vec3(0, 0, 0);
         }
     }
 
-    if (closestObject != nullptr) {
-        // The hit shader supplies its own color.
-        color = closestObject->shader->rayColor(
-            closestHit,
-            vecLights,
-            shapeObjs,
-            depth - 1
-        );
-    }
+    // const Scene::SceneObject* closestObject = nullptr;
+
+    // for (const Scene::SceneObject& object :
+    //      hit.scene->getObjects()) {
+
+    //     HitStruct shadowHit;
+
+    //     if (object.shape->intersect(
+    //             reflectionRay, 0.0001f, tmax, shadowHit
+    //         )) {
+
+    //         shadowHit.viewDir = reflectionRay.getDirection();
+    //         shadowHit.scene = hit.scene;
+
+    //         closestHit = shadowHit;
+    //         closestObject = &object;
+    //     }
+    // }
+
+    // if (closestObject != nullptr) {
+    //     // The hit shader supplies its own color.
+    //     color = closestObject->shader->rayColor(
+    //         closestHit,
+    //         vecLights,
+    //         shapeObjs,
+    //         depth - 1
+    //     );
+    // }
 
     return color;
 }
@@ -251,26 +348,34 @@ vec3 Diffuse::rayColor(
     float closestT =
         std::numeric_limits<float>::infinity();
 
-    HitStruct closestHit;
-    bool hitSomething = false;
+    HitStruct closestHit{};
 
-    for (Shape* shape : shapeObjs) {
-        HitStruct candidateHit;
-        float candidateMax = closestT;
+    bool hitSomething = traceSecondary(
+        bounceRay,
+        0.0001f,
+        closestT,
+        hit,
+        shapeObjs,
+        closestHit
+    );
 
-        if (shape->intersect(
-                bounceRay,
-                0.0001f,
-                candidateMax,
-                candidateHit)) {
+    // for (Shape* shape : shapeObjs) {
+    //     HitStruct candidateHit;
+    //     float candidateMax = closestT;
 
-            if (candidateHit.t < closestT) {
-                closestT = candidateHit.t;
-                closestHit = candidateHit;
-                hitSomething = true;
-            }
-        }
-    }
+    //     if (shape->intersect(
+    //             bounceRay,
+    //             0.0001f,
+    //             candidateMax,
+    //             candidateHit)) {
+
+    //         if (candidateHit.t < closestT) {
+    //             closestT = candidateHit.t;
+    //             closestHit = candidateHit;
+    //             hitSomething = true;
+    //         }
+    //     }
+    // }
 
     // If the bounce hits another object, recurse.
     if (hitSomething) {
