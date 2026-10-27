@@ -127,8 +127,12 @@ int main(int argc, char* argv[]) {
         parser.parseFileData(inputFile);
 
         rayTracer renderer;
+        auto start = std::chrono::high_resolution_clock::now();
         renderer.render(scene, fb, 0, depth);
+        auto end = std::chrono::high_resolution_clock::now();
+        double duration = std::chrono::duration<double, std::milli>(end - start).count();
 
+        std::cout << "Render time: " << duration << " ms\n";
         fb.exportPNG(outputFile);
 
         std::cout << "Rendered mirror box to "
