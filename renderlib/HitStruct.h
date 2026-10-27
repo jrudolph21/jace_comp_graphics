@@ -4,6 +4,7 @@
 class Shape;
 class Shader;
 class Scene;
+class bvhNode;
 
 struct HitStruct {
     double t = 0.0;
@@ -13,4 +14,5 @@ struct HitStruct {
     const Shape* shape = nullptr;
     const Shader* shader = nullptr;
     const Scene* scene = nullptr;
+    bvhNode* root = nullptr;
 };

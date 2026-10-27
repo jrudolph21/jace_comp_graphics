@@ -48,6 +48,14 @@ bool Sphere::intersect(const ray &r, const float tmin, float &tmax, HitStruct &h
 
 }
 
+aabb Sphere::boundingBox() const {
+
+    vec3 outer_edge(radius, radius, radius);
+
+    return aabb(center - outer_edge, center + outer_edge);
+
+}
+
 Triangle::Triangle() : pointA(vec3(1,0,0)), pointB(vec3(0,1,0)), pointC(vec3(0,0,1)) {}
 
 Triangle::Triangle(vec3 a, vec3 b, vec3 c) : pointA(a), pointB(b), pointC(c) {}
@@ -180,4 +188,148 @@ bool Triangle::mollerIntersect(const ray &r, const float tmin, float &tmax, HitS
         return true;
     }
 
+}
+
+aabb Triangle::boundingBox() const {
+
+    const vec3 minimum(
+        std::min({pointA.x(), pointB.x(), pointC.x()}),
+        std::min({pointA.y(), pointB.y(), pointC.y()}),
+        std::min({pointA.z(), pointB.z(), pointC.z()}));
+
+    const vec3 maximum(
+        std::max({pointA.x(), pointB.x(), pointC.x()}),
+        std::max({pointA.y(), pointB.y(), pointC.y()}),
+        std::max({pointA.z(), pointB.z(), pointC.z()}));
+
+    return aabb(minimum, maximum);
+}
+
+bvhNode::bvhNode(std::vector<Shape*> shapes, int axis) {
+    const auto N = shapes.size();
+
+    if (N == 0) {
+        throw std::invalid_argument(
+            "Cannot build a BVH from an empty shape list");
+    }
+
+    if (axis < 0 || axis > 2) {
+        throw std::invalid_argument(
+            "BVH axis must be 0, 1, or 2");
+    }
+
+    for (Shape* shape : shapes) {
+        if (shape == nullptr) {
+            throw std::invalid_argument(
+                "BVH shape list contains a null pointer");
+        }
+    }
+
+    if (N == 1) {
+        leftChild = shapes[0];
+        rightChild = nullptr;
+
+        bbox = leftChild->boundingBox();
+        return;
+    }
+    else if (N == 2) {
+        leftChild = shapes[0];
+        rightChild = shapes[1];
+    }
+    else {
+
+        std::sort(
+            shapes.begin(),
+            shapes.end(),
+            [axis](const Shape* a, const Shape* b) {
+
+                const aabb boxA = a->boundingBox();
+                const aabb boxB = b->boundingBox();
+
+                const vec3 centerA =
+                    0.5 * boxA.minimum + 0.5 * boxA.maximum;
+
+                const vec3 centerB =
+                    0.5 * boxB.minimum + 0.5 * boxB.maximum;
+
+                if (axis == 0) {
+                    return centerA.x() < centerB.x();
+                }
+
+                if (axis == 1) {
+                    return centerA.y() < centerB.y();
+                }
+
+                return centerA.z() < centerB.z();
+            });
+
+        const auto middle = shapes.begin() + N / 2;
+
+        std::vector<Shape*> leftside(shapes.begin(), middle);
+
+        std::vector<Shape*> rightside(middle, shapes.end());
+
+        const int nextAxis = (axis + 1) % 3;
+
+        leftSubtree = std::make_unique<bvhNode>(leftside, nextAxis);
+
+        rightSubtree = std::make_unique<bvhNode>(rightside, nextAxis);
+
+        leftChild = leftSubtree.get();
+        rightChild = rightSubtree.get();
+    }
+
+    bbox = mergeBoundingBoxes(
+        leftChild->boundingBox(),
+        rightChild->boundingBox());
+}
+
+bool bvhNode::intersect(
+    const ray& r,
+    const float tmin,
+    float& tmax,
+    HitStruct& hit)
+{
+    float boxTmax = tmax;
+
+    if (!bbox.hit(r, tmin, boxTmax)) {
+        return false;
+    }
+
+    bool hitLeft = false;
+    bool hitRight = false;
+
+    if (leftChild) {
+        hitLeft = leftChild->intersect(r, tmin, tmax, hit);
+    }
+
+    if (rightChild) {
+        hitRight = rightChild->intersect(r, tmin, tmax, hit);
+    }
+
+    return hitLeft || hitRight;
+}
+
+
+aabb bvhNode::mergeBoundingBoxes(
+    const aabb& a,
+    const aabb& b)
+{
+    aabb result;
+
+    result.minimum = vec3(
+        std::min(a.minimum.x(), b.minimum.x()),
+        std::min(a.minimum.y(), b.minimum.y()),
+        std::min(a.minimum.z(), b.minimum.z()));
+
+    result.maximum = vec3(
+        std::max(a.maximum.x(), b.maximum.x()),
+        std::max(a.maximum.y(), b.maximum.y()),
+        std::max(a.maximum.z(), b.maximum.z()));
+
+    return result;
+}
+
+aabb bvhNode::boundingBox() const {
+    return bbox;
 }
