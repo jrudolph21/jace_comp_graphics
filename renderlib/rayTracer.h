@@ -7,7 +7,7 @@ class rayTracer {
 
     public:
 
-        void render(const Scene& scene, frameBuffer& fb, int cameraIndex = 0, int depth = 3);
+        void render(const Scene& scene, frameBuffer& fb, int cameraIndex = 0, int depth = 3, bvhNode* root = nullptr);
 
 };
 

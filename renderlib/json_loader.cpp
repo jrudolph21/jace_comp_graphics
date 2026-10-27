@@ -3,6 +3,7 @@
 
 #include "rayTracer.h"
 #include <iostream>
+#include <chrono>
 #include <stdexcept>
 #include <string>
 
@@ -126,17 +127,28 @@ int main(int argc, char* argv[]) {
         SceneParser_JSON parser(loader);
         parser.parseFileData(inputFile);
 
+        // Build the BVH once.
+        std::unique_ptr<bvhNode> root;
+
+        if (!scene.getShapes().empty()) {
+            root = std::make_unique<bvhNode>(scene.getShapes(), 0);
+        }
+
         rayTracer renderer;
-        renderer.render(scene, fb, 0, depth);
+        auto start = std::chrono::high_resolution_clock::now();
+        renderer.render(scene, fb, 0, depth, root.get());
+        auto end = std::chrono::high_resolution_clock::now();
+        double duration = std::chrono::duration<double, std::milli>(end - start).count();
+
+        std::cout << "Render time: " << duration << " ms\n";
 
         fb.exportPNG(outputFile);
 
-        std::cout << "Rendered mirror box to "
-                  << outputFile << '\n';
+        std::cout << "Rendered scene to " << outputFile << '\n';
 
         return 0;
-    } catch (const std::exception& error) {
-        std::cerr << "Error: " << error.what() << '\n';
-        return 1;
-    }
+        } catch (const std::exception& error) {
+            std::cerr << "Error: " << error.what() << '\n';
+            return 1;
+        }
 }

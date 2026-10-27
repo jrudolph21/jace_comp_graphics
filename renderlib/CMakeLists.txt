@@ -21,6 +21,7 @@ add_library (renderlib
   SceneLoader.h 
   SceneParser_JSON.cpp 
   SceneParser_JSON.h
+  AABB.h
   )
 
 target_link_libraries(renderlib PRIVATE PNG::PNG)
@@ -38,7 +39,7 @@ add_executable( frameBuffer
 )
 
 add_executable( progress_lab
-  bronze_level.cpp 
+  # bronze_level.cpp 
 )
 
 add_executable( json_loader
