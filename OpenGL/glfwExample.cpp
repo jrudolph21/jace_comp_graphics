@@ -61,7 +61,7 @@ int main(void)
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glClearColor(0.0, 0.7, 1.0, 1.0);
+    glClearColor(0.4, 0.4, 0.4, 1.0);
 
     int fb_width, fb_height;
     glfwGetFramebufferSize(window, &fb_width, &fb_height);
@@ -80,6 +80,62 @@ int main(void)
     std::cout << "GL_MAJOR_VERSION: " << major_version << std::endl;
 
     double timeDiff = 0.0, startFrameTime = 0.0, endFrameTime = 0.0;
+
+
+    // Creating vertex array buffer
+    GLuint m_triangleVBO[1];
+    glGenBuffers(1, m_triangleVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
+
+    // Actual Triangle Data to be copied to GPU mem
+    // std::vector<float> host_VertexBuffer{
+    //     -0.5f, -0.5f, 0.0f,
+    //     0.5f, -0.5f, 0.0f,
+    //     0.0f, 0.5f, 0.0f
+    // };
+
+    std::vector<float> host_VertexBuffer{
+        -0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,
+         0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f
+    };
+    
+    int numBytes = host_VertexBuffer.size() * sizeof(float);
+
+    // Copy numBytes from buffer to GPU and store in VBO
+    glBufferData(GL_ARRAY_BUFFER, numBytes, host_VertexBuffer.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // No longer need CPU memory
+    host_VertexBuffer.clear();
+
+    // Create a vertex array objcet (VAO) that will map attributes in our
+    // vertex buffer to different location attributes for our shaders
+    GLuint m_VAO;
+    glGenVertexArrays(1, &m_VAO);
+    glBindVertexArray(m_VAO);
+
+    // VAO details - we only have 1 attribute or location (Postion of the vertex)
+    // glEnableVertexAttribArray(0);
+    // glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+    // glBindVertexArray(0);
+
+    //More color
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+    // glBindVertexArray(0);
+    glEnableVertexAttribArray(1);
+    //glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[1]);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+    
+    sivelab::GLSLObject shader;
+    shader.addShader( "vertexShader_passthrough.glsl", sivelab::GLSLObject::VERTEX_SHADER );
+    shader.addShader( "fragmentShader_passthrough.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
+    shader.createProgram();
+
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -93,6 +149,12 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         /* Render your objects here */
+
+        shader.activate();
+        glBindVertexArray(m_VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+        shader.deactivate();
 
         // Swap the front and back buffers
         glfwSwapBuffers(window);
