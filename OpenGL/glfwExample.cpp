@@ -96,7 +96,7 @@ int main(void)
 
     std::vector<float> host_VertexBuffer{
         -0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,
+         0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,
          0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f
     };
     
