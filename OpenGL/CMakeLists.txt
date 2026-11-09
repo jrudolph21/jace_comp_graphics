@@ -8,6 +8,7 @@ add_executable (glfwExample
 add_executable(matrix_lab
     matrices_lab.cpp
     GLSL.cpp GLSL.h
+    OpenGLCamera.h
 )
 
 target_link_libraries (glfwExample PRIVATE GLEW::GLEW)

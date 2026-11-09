@@ -11,6 +11,7 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "GLSL.h"
+#include "OpenGLCamera.h"
 
 int CheckGLErrors(const char *s)
 {
@@ -147,54 +148,83 @@ int main(void)
     shader.createProgram();
 
     
-    GLuint projMatrixID, viewMatrixID;
+    GLuint projMatrixID, viewMatrixID, modelMatrixID;
     projMatrixID = shader.createUniform( "projMatrix" );
     viewMatrixID = shader.createUniform( "viewMatrix" );
+    modelMatrixID = shader.createUniform( "modelMatrix");
 
-    glm::vec3 m_pos(0,0,0), m_viewDir(0,0,-1);
-    glm::vec3 m_U(1,0,0), m_V(0,1,0), m_W(0,0,1);
+    OpenGLCamera camera(
+        glm::vec3(0.0f, 0.0f, 12.0f),  // Eye position
+        glm::vec3(0.0f, 0.3f, -1.0f),  // View direction
+        glm::vec3(0.0f, 1.0f, 0.0f),   // World up
+        1.0f,                          // Image-plane width in world units
+        1.0f,                          // Focal length in world units
+        0.1f,                          // Near clipping distance
+        100.0f                         // Far clipping distance
+    );
 
-    
-    /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
-    {
-        endFrameTime = glfwGetTime();
-        timeDiff = endFrameTime - startFrameTime;
-        startFrameTime = glfwGetTime();
+    double previousTime = glfwGetTime();
 
-        // Clear the window's buffer (or clear the screen to our
-        // background color)
+    while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+
+        const double currentTime = glfwGetTime();
+        const float deltaTime = static_cast<float>(currentTime - previousTime);
+        previousTime = currentTime;
+
+        const float distance = 4.0f * deltaTime;
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            camera.moveForward(distance);
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            camera.moveForward(-distance);
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            camera.moveRight(-distance);
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            camera.moveRight(distance);
+
+        if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS && deltaTime > 0.0f)
+            std::cout << "fps: " << 1.0f / deltaTime << '\n';
+
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+
+        glfwGetFramebufferSize(window, &fb_width, &fb_height);
+        if (fb_width == 0 || fb_height == 0) {
+            glfwWaitEvents();
+            previousTime = glfwGetTime();
+            continue;
+        }
+        glViewport(0, 0, fb_width, fb_height);
+
+        const glm::mat4 projection = camera.getProjectionMatrix(fb_width, fb_height);
+        const glm::mat4 view = camera.getViewMatrix();
+
+        // Rotate the triangle 
+        const float angle = glm::radians(45.0f) * static_cast<float>(currentTime);
+        const glm::mat4 model = glm::rotate(
+            glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // create the view matrix from our camera data                                                                                                   
-        glm::mat4 M_view = glm::lookAt( m_pos, m_pos - m_W, m_V );  
-
-        /* Render your objects here */
-
         shader.activate();
 
-        glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr( M_ortho ));
-        glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr( M_view ));
+        glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(model));
 
         glBindVertexArray(m_VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
+
         shader.deactivate();
-
-        // Swap the front and back buffers
         glfwSwapBuffers(window);
-
-        /* Poll for and process events */
-        glfwPollEvents();
-
-        if (glfwGetKey( window, GLFW_KEY_T ) == GLFW_PRESS) {
-            std::cout << "fps: " << 1.0/timeDiff << std::endl;
-        }
-        if (glfwGetKey( window, GLFW_KEY_ESCAPE ) == GLFW_PRESS) {
-            glfwSetWindowShouldClose(window, 1);
-        }
     }
-  
+
+    glDeleteVertexArrays(1, &m_VAO);
+    glDeleteBuffers(1, m_triangleVBO);
     glfwTerminate();
     return 0;
 }
+
+
