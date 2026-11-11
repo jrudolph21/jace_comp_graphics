@@ -125,13 +125,7 @@ int main(void)
     glGenVertexArrays(1, &m_VAO);
     glBindVertexArray(m_VAO);
 
-    // VAO details - we only have 1 attribute or location (Postion of the vertex)
-    // glEnableVertexAttribArray(0);
-    // glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-    // glBindVertexArray(0);
 
-    //More color
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), 0);
@@ -155,7 +149,7 @@ int main(void)
 
     OpenGLCamera camera(
         glm::vec3(0.0f, 0.0f, 12.0f),  // Eye position
-        glm::vec3(0.0f, 0.3f, -1.0f),  // View direction
+        glm::vec3(0.0f, 0.0f, -1.0f),  // View direction
         glm::vec3(0.0f, 1.0f, 0.0f),   // World up
         1.0f,                          // Image-plane width in world units
         1.0f,                          // Focal length in world units
