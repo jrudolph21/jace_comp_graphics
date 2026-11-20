@@ -32,3 +32,9 @@ Open a terminal in the directory containing the compiled executable, then specif
 | **F** | Print the current frame-rate estimate in the terminal |
 | **Esc** | Close the application |
 
+
+## "Side-by-Side" Comparison
+
+The OpenGL image is does not have any shadows as we would assume. It seems like the lighting is much brighter. The postions of the small spheres are much different compared to the ray tracing image. I suspect this because I translate the small sphere to a position in order to make the correct orbiting pattern.
+
+The ray tracing image is much more sharp, with shadows and sharper edges.
