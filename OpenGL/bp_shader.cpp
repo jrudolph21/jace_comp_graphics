@@ -95,8 +95,8 @@ int main(void)
 
     std::vector<float> host_VertexBuffer{
         -3.0f, -3.0f, 0.0f,  0.0f, 0.0f, 1.0f,
-         3.0f, -3.0f, 0.0f,  0.0f, 0.0f, 1.0f, 
-         0.0f,  3.0f, 0.0f,  0.0f, 0.0f, 1.0f 
+         -3.0f, 3.0f, 0.0f,  0.0f, 0.0f, 1.0f, 
+         3.0f,  -3.0f, 0.0f,  0.0f, 0.0f, 1.0f 
     };
     
     int numBytes = host_VertexBuffer.size() * sizeof(float);
@@ -222,6 +222,12 @@ int main(void)
 
         const glm::vec4 lightPos(0.0f, 0.0f, 8.0f, 1.0f);
 
+        const glm::vec3 pivotPos(0.0f, 0.0f, -3.0f);
+
+        const glm::vec3 rotationAxis(1.0f, 0.0f, 0.0f);
+
+        const float angle1 = glm::radians(45.0f) * static_cast<float>(currentTime);
+
         glUniform4fv(lightPosWorldID, 1, glm::value_ptr(lightPos));
 
         // Shared lighting and specular
@@ -233,45 +239,143 @@ int main(void)
 
         glBindVertexArray(m_VAO);
 
-        // Triangle 1
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 1.0f, 4.0f));
+        glBindVertexArray(m_VAO);
 
-        const float angle1 = glm::radians(80.0f) * static_cast<float>(currentTime);
-        model = glm::rotate(model, angle1, glm::vec3(1.0f, 1.0f, 0.0f));
+        // Shared box rotation
+        glm::mat4 boxRotation(1.0f);
 
-        glm::mat4 normal = glm::transpose(glm::inverse(view * model));
+        boxRotation = glm::translate(boxRotation, pivotPos);
+        boxRotation = glm::rotate(boxRotation, angle1, rotationAxis);
+        boxRotation = glm::translate(boxRotation, -pivotPos);
 
-        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(model));
+        // Helper function for rendering a triangle
+        auto drawTriangle = [&](const glm::mat4& localTransform, const glm::vec3& color) {
 
-        glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(normal));
+            glm::mat4 model = boxRotation * localTransform;
 
-        glUniform3f(kdID, 0.0f, 0.0f, 1.0f);
-        glUniform3f(kaID, 0.0f, 0.0f, 0.15f);
+            glm::mat4 normal = glm::transpose(glm::inverse(view * model));
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+            glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(model));
 
-        // Triangle 2
-        model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, -1.0f, -3.0f));
+            glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(normal));
 
-        const float angle = glm::radians(40.0f) * static_cast<float>(currentTime);
-        model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+            glUniform3fv(kdID, 1, glm::value_ptr(color));
+            glUniform3fv(kaID, 1, glm::value_ptr(color * 0.15f));
 
-        normal = glm::transpose(glm::inverse(view * model));
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        };
 
-        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(model));
+        // Triangle 1 - Front
+        glm::mat4 front1(1.0f);
 
-        glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(normal));
+        drawTriangle(front1, glm::vec3(0.0f, 0.0f, 1.0f));
 
-        glUniform3f(kdID, 1.0f, 0.0f, 0.0f);
-        glUniform3f(kaID, 0.15f, 0.0f, 0.0f);
+        // Triangle 2 - Front
+        glm::mat4 front2(1.0f);
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        front2 = glm::rotate(
+            front2,
+            glm::radians(180.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f)
+        );
+
+        drawTriangle(front2, glm::vec3(1.0f, 0.0f, 0.0f));
+
+        // Triangle 3 - Back
+        glm::mat4 back1(1.0f);
+
+        back1 = glm::translate(
+            back1,
+            glm::vec3(0.0f, 0.0f, -6.0f)
+        );
+
+        back1 = glm::rotate(
+            back1,
+            glm::radians(180.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+
+        drawTriangle(back1, glm::vec3(0.0f, 0.0f, 1.0f));
+
+        // Triangle 4 - Back
+        glm::mat4 back2(1.0f);
+
+        back2 = glm::translate(
+            back2,
+            glm::vec3(0.0f, 0.0f, -6.0f)
+        );
+
+        back2 = glm::rotate(
+            back2,
+            glm::radians(180.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f)
+        );
+
+        drawTriangle(back2, glm::vec3(1.0f, 0.0f, 0.0f));
+
+        // Triangle 5 - Top
+        glm::mat4 top1(1.0f);
+
+        top1 = glm::translate(
+            top1,
+            glm::vec3(0.0f, 3.0f, -3.0f)
+        );
+
+        top1 = glm::rotate(
+            top1,
+            glm::radians(-90.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f)
+        );
+
+        drawTriangle(top1, glm::vec3(1.0f, 1.0f, 1.0f));
+
+        // Triangle 6 - Top
+        glm::mat4 top2 = top1;
+
+        top2 = glm::rotate(
+            top2,
+            glm::radians(180.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f)
+        );
+
+        drawTriangle(top2, glm::vec3(0.0f, 0.0f, 0.0f));
+
+
+        // Triangle 7 - Bottom
+        glm::mat4 bottom1(1.0f);
+
+        bottom1 = glm::translate(
+            bottom1,
+            glm::vec3(0.0f, -3.0f, -3.0f)
+        );
+
+        bottom1 = glm::rotate(
+            bottom1,
+            glm::radians(90.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f)
+        );
+
+        drawTriangle(bottom1, glm::vec3(0.0f, 0.0f, 0.0f));
+
+        // Triangle 8 - Bottom
+        glm::mat4 bottom2 = bottom1;
+
+        bottom2 = glm::rotate(
+            bottom2,
+            glm::radians(180.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f)
+        );
+
+        drawTriangle(bottom2, glm::vec3(1.0f, 1.0f, 1.0f));
+
 
         glBindVertexArray(0);
-        shader.deactivate();
 
+        shader.deactivate();
         glfwSwapBuffers(window);
     }
+
+
 
     glDeleteVertexArrays(1, &m_VAO);
     glDeleteBuffers(1, m_triangleVBO);
