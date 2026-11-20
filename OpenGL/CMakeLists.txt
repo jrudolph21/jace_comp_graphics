@@ -30,13 +30,6 @@ add_executable(norm_shader
 )
 
 add_executable(silverLevel
-    silverLevel.cpp
-    GLSL.cpp GLSL.h
-    OpenGLCamera.h
-    OpenGLTriangle.h
-)
-
-add_executable(testing 
     silverLevelTest.cpp
     ISceneLoader.h
     SceneLoader.h 
@@ -158,21 +151,3 @@ endif()
 target_link_libraries (silverLevel PRIVATE PNG::PNG)
 target_link_libraries (silverLevel PRIVATE ZLIB::ZLIB)
 
-
-
-target_link_libraries (testing PRIVATE GLEW::GLEW)
-target_link_libraries (testing PRIVATE glfw)
-
-if(APPLE)
-    target_link_libraries(testing PRIVATE
-        "-framework OpenGL"
-        "-framework Cocoa"
-        "-framework IOKit"
-        "-framework CoreVideo"
-    )
-else()
-    target_link_libraries(testing PRIVATE OpenGL::GL)
-endif()
-
-target_link_libraries (testing PRIVATE PNG::PNG)
-target_link_libraries (testing PRIVATE ZLIB::ZLIB)
