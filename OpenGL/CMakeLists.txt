@@ -29,6 +29,24 @@ add_executable(norm_shader
     OpenGLCamera.h
 )
 
+add_executable(silverLevel
+    silverLevel.cpp
+    GLSL.cpp GLSL.h
+    OpenGLCamera.h
+    OpenGLTriangle.h
+)
+
+add_executable(testing 
+    silverLevelTest.cpp
+    ISceneLoader.h
+    SceneLoader.h 
+    SceneParser_JSON.cpp 
+    SceneParser_JSON.h    
+    GLSL.cpp GLSL.h
+    OpenGLCamera.h
+    OpenGLTriangle.h    
+)
+
 target_link_libraries (glfwExample PRIVATE GLEW::GLEW)
 target_link_libraries (glfwExample PRIVATE glfw)
 
@@ -123,3 +141,38 @@ target_link_libraries (norm_shader PRIVATE PNG::PNG)
 target_link_libraries (norm_shader PRIVATE ZLIB::ZLIB)
 
 
+target_link_libraries (silverLevel PRIVATE GLEW::GLEW)
+target_link_libraries (silverLevel PRIVATE glfw)
+
+if(APPLE)
+    target_link_libraries(silverLevel PRIVATE
+        "-framework OpenGL"
+        "-framework Cocoa"
+        "-framework IOKit"
+        "-framework CoreVideo"
+    )
+else()
+    target_link_libraries(silverLevel PRIVATE OpenGL::GL)
+endif()
+
+target_link_libraries (silverLevel PRIVATE PNG::PNG)
+target_link_libraries (silverLevel PRIVATE ZLIB::ZLIB)
+
+
+
+target_link_libraries (testing PRIVATE GLEW::GLEW)
+target_link_libraries (testing PRIVATE glfw)
+
+if(APPLE)
+    target_link_libraries(testing PRIVATE
+        "-framework OpenGL"
+        "-framework Cocoa"
+        "-framework IOKit"
+        "-framework CoreVideo"
+    )
+else()
+    target_link_libraries(testing PRIVATE OpenGL::GL)
+endif()
+
+target_link_libraries (testing PRIVATE PNG::PNG)
+target_link_libraries (testing PRIVATE ZLIB::ZLIB)

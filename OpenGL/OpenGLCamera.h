@@ -37,6 +37,29 @@ class OpenGLCamera {
             position += distance * U;
         }
 
+        void moveUp(float distance) {
+            position += distance * V;
+        }
+
+        void rotateView(float yawChange, float pitchChange) {
+
+            yaw += yawChange;
+            pitch = glm::clamp(pitch + pitchChange, -89.0f, 89.0f);
+
+            const float yawRadians = glm::radians(yaw);
+            const float pitchRadians = glm::radians(pitch);
+
+            glm::vec3 direction;
+            direction.x = std::cos(yawRadians) * std::cos(pitchRadians);
+            direction.y = std::sin(pitchRadians);
+            direction.z = std::sin(yawRadians) * std::cos(pitchRadians);
+
+            W = -glm::normalize(direction);
+            U = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), W));
+            V = glm::cross(W, U);
+            
+        }
+
     private:
         glm::vec3 position;
         glm::vec3 U, V, W;
@@ -45,4 +68,7 @@ class OpenGLCamera {
         float focalLength;
         float nearPlane;
         float farPlane;
+
+        float yaw = -90.0f;
+        float pitch = 0.0f;
 };
