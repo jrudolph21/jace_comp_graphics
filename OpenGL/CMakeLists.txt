@@ -40,6 +40,13 @@ add_executable(silverLevel
     OpenGLTriangle.h    
 )
 
+add_executable(textureMapping 
+    textureLab.cpp
+    GLSL.cpp GLSL.h
+    OpenGLCamera.h
+    OpenGLTriangle.h    
+)
+
 target_link_libraries (glfwExample PRIVATE GLEW::GLEW)
 target_link_libraries (glfwExample PRIVATE glfw)
 
@@ -150,4 +157,22 @@ endif()
 
 target_link_libraries (silverLevel PRIVATE PNG::PNG)
 target_link_libraries (silverLevel PRIVATE ZLIB::ZLIB)
+
+
+target_link_libraries (textureMapping PRIVATE GLEW::GLEW)
+target_link_libraries (textureMapping PRIVATE glfw)
+
+if(APPLE)
+    target_link_libraries(textureMapping PRIVATE
+        "-framework OpenGL"
+        "-framework Cocoa"
+        "-framework IOKit"
+        "-framework CoreVideo"
+    )
+else()
+    target_link_libraries(textureMapping PRIVATE OpenGL::GL)
+endif()
+
+target_link_libraries (textureMapping PRIVATE PNG::PNG)
+target_link_libraries (textureMapping PRIVATE ZLIB::ZLIB)
 
